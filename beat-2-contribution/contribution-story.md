@@ -156,31 +156,71 @@ https://github.com/usemoss/moss/issues/435#issuecomment-6553382070.
 
 **Environment Setup**
 
-[What a stranger would need to stand this up: your operating system,
-the relevant versions (language, runtime, package manager, the project
-itself), and how you set the project up. Then the challenges you faced
-and how you solved them, or that none came up.]
+I used a clean clone of my `ajorge2/moss` fork on macOS 26.5.1 with Python
+3.14.7. The clone's `upstream` remote points to `usemoss/moss`, and I pinned
+the reproduction to current `main` commit
+`2e638ec577199ef4abc8bcb99fe9ccf1497a8451`. This reproduction inspects whether
+the requested infrastructure exists, so it needs no installed dependencies or
+credentials. Running the live 100,000-document Moss benchmark would additionally
+require `MOSS_PROJECT_ID` and `MOSS_PROJECT_KEY`.
 
 **Steps to Reproduce**
 
-1. [Step 1]
-2. [Step 2]
-3. [Observed result]
+1. From the repository root, run
+   `rg -n "benchmarks|run_all\.py|bench_moss" .github/workflows` to look for a
+   CI job that invokes the benchmark subsystem.
+2. Run
+   `rg -n -i "recall|baseline|regression|json\.(dump|dumps)|benchmark_results" benchmarks --glob '*.py'`
+   to look for recall, result persistence, a baseline, or a regression gate.
+3. Run
+   `rg --files benchmarks | rg '(^|/)(test_.*|.*_test)\.py$'` to look for
+   benchmark tests, then inspect `benchmarks/bench_moss.py`, `stats.py`, and
+   `run_all.py` to see the current measurement and result path.
 
 **Reproduction Evidence**
 
-- **Commit showing reproduction:** [link to commit in your fork]
-- **Screenshots/logs:** [if applicable]
-- **My findings:** [what you discovered during reproduction; an
-  honest, evidenced cannot-reproduce that led you to re-pick or ask
-  the maintainer belongs here and costs you nothing]
+- **Commit showing reproduction:** None; I reproduced the missing behavior on
+  the unchanged upstream commit
+  [`2e638ec`](https://github.com/usemoss/moss/commit/2e638ec577199ef4abc8bcb99fe9ccf1497a8451).
+- **Screenshots/logs:** All three targeted searches produced no matching lines
+  and exited 1:
+
+  ```text
+  $ rg -n "benchmarks|run_all\.py|bench_moss" .github/workflows
+  $ echo $?
+  1
+
+  $ rg -n -i "recall|baseline|regression|json\.(dump|dumps)|benchmark_results" benchmarks --glob '*.py'
+  $ echo $?
+  1
+
+  $ rg --files benchmarks | rg '(^|/)(test_.*|.*_test)\.py$'
+  $ echo $?
+  1
+  ```
+
+- **My findings:** `bench_moss.py` records only elapsed milliseconds and sends
+  them to `BenchmarkResult`; `stats.py` computes mean, standard deviation,
+  p50, p95, and p99; and `run_all.py` prints those fields to the terminal. No
+  workflow runs the benchmark, no test covers it, no recall value is computed,
+  no per-commit result is persisted, and no baseline or regression threshold
+  is enforced. I did not perform a credentialed live query because that would
+  not test whether the missing CI and tracking infrastructure exists.
 
 **Toolkit**
 
-- Tool:
-- What it produced:
-- Difficulties:
-- What changed:
+- Tool: repro-check, used first on my claim and then on `claim-draft.md` plus
+  `repro-draft.md` against Moss #435.
+- What it produced: It verified the pinned commit and repository evidence and
+  ultimately passed environment, steps, behavior-shown, honesty, and comms.
+- Difficulties: Its first package run stopped after reading only the early part
+  of `scan-output.md` and wrongly said Moss had never been graded. Its next run
+  correctly evaluated the report but rejected narrated results because the
+  rubric requires pasted evidence.
+- What changed: I directed it to the saved Moss grade's exact line range, then
+  replaced result summaries with literal terminal transcripts, exit codes, and
+  numbered excerpts from the three benchmark files. The revised package passed
+  every check.
 
 ---
 
