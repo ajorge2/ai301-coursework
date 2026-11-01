@@ -65,11 +65,16 @@ added required newcomer-access and prerequisite checks, documented their
 evidence, and changed the ranking to demote frontend-only issues and prefer
 profile-fit titles before comment count.
 
-**Unit 6: [one line on the tool work]**
+**Unit 6: I guarded upstream comments and cached Moss's benchmark context**
 
-[2-4 sentences: the voice-guard, the repo-memory file. What broke or
-fell short, and what changed because of it. "Nothing broke" counts when
-it is true - say how you know.]
+I consolidated my voice rules into one canonical guide and installed a
+PreToolUse guard that checks every GitHub issue or pull-request body posted
+through Claude Code. The first wiring attempt could not reach the hook because
+my Claude login had expired; after signing in again, the required body-less
+comment test was stopped and my repro-check-approved Moss claim passed. I also
+forked Moss and wrote an excluded `CLAUDE.local.md` that imports the repository's
+agent guidance and distills the benchmark files, commands, missing tests, and
+credential-dependent CI risk into 60 lines for future sessions.
 
 **Unit 7: [one line on the tool work]**
 
