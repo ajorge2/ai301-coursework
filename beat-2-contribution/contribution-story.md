@@ -8,9 +8,8 @@ format criteria grade exactly that. Your course repo link is the whole submissio
 files and no evidence uploads are part of Assignment 5.
 
 **Contribution Number:** [1]
-**Student:** [Student name]
-**GitHub Username:** [your GitHub username, exactly as it appears on your profile - no @, no
-profile URL. Your comments upstream are identified by this name.]
+**Student:** Andrew Jorge
+**GitHub Username:** ajorge2
 **Issue:** [GitHub issue link]
 **Pull Request:** [GitHub PR link, once opened]
 
@@ -55,10 +54,16 @@ happened; these entries are the toolkit's own timeline.
 All four entries are graded. Keep every heading below, and fill each
 one in the week it belongs to.
 
-**Unit 5: [one line on the tool work]**
+**Unit 5: I turned my issue grader into an evaluation-focused GitHub scout**
 
-[2-4 sentences: what you built (the scout, your strategy), what broke
-or fell short, what changed because of it.]
+I built an issue-scout with a production-AI fit profile, five tested GitHub
+queries, result-based ranking filters, and a rubric that grades five candidates
+per scan. My first scan exposed that the rubric could accept repositories whose
+code required private access and issues blocked by unfinished prerequisites,
+while the ranking elevated frontend-only work that did not fit my profile. I
+added required newcomer-access and prerequisite checks, documented their
+evidence, and changed the ranking to demote frontend-only issues and prefer
+profile-fit titles before comment count.
 
 **Unit 6: [one line on the tool work]**
 
