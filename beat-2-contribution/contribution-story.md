@@ -1,4 +1,4 @@
-# Contribution: [Issue Title]
+# Contribution: CI: reproducible benchmark harness with tracked results
 
 Path: `beat-2-contribution/contribution-story.md`
 
@@ -10,7 +10,7 @@ files and no evidence uploads are part of Assignment 5.
 **Contribution Number:** [1]
 **Student:** Andrew Jorge
 **GitHub Username:** ajorge2
-**Issue:** [GitHub issue link]
+**Issue:** https://github.com/usemoss/moss/issues/435
 **Pull Request:** [GitHub PR link, once opened]
 
 One repository, built across units 5 to 8, telling the whole story of your real
@@ -85,24 +85,38 @@ drafted, what you did with the draft.]
 
 ## Why I Chose This Issue
 
-[1-2 paragraphs in your own words: how you searched, what your scan
-surfaced, what your scout's verdict said, why this issue fits your
-profile, and what you hope to learn. If your scout's verdict on it
-was reject and you chose it anyway, say so here and say why; choosing
-against your own tool silently is what loses points. Close with an
-honest read of the tool itself: where the scout fell short on a real
-wild search and what you changed or would change, or what convinced
-you it held up. **Record the link to your claim comment in this section too.**
-Not claimed yet? Write `claim pending` and today's date where the link goes,
-and add the link the moment your claim lands.]
+I found Moss #435 on the course Issue Selection site while looking for Python
+and production-AI evaluation work. My scout regraded it alongside cmux #16159
+and OpenTelemetry #7114; all three passed, but it ranked Moss first by fit and
+called it ambitious because an earlier 12-file implementation in PR #446
+closed without merging. I chose it because the requested latency percentiles,
+recall measurements, reproducible dataset, and CI regression gate match the
+kind of measurable AI reliability work I want to do. I hope to learn how to
+separate hardware-sensitive performance baselines from retrieval-quality
+signals and make both trustworthy in CI.
+
+The scout was useful for separating an interesting issue from one that was
+actually available, but it was not automatically reliable. Its first wild scan
+needed access and prerequisite checks, its original scope check was too strict
+for real issues, and its Moss difficulty note incorrectly attributed a comment
+from the PR author to a maintainer. I replaced that scope check with
+`scope-feasible`, added non-gating difficulty notes, and required author-role
+evidence before attributing maintainer direction. I claimed the issue here:
+https://github.com/usemoss/moss/issues/435#issuecomment-6553382070.
 
 **Toolkit**
 
-- Tool: issue-scout (your scout: your search strategy, your rubric),
-  and how you used it
-- What it produced: [the scan and its verdict on this issue, described]
-- Difficulties: [where it fell short, or "none met" if none did]
-- What changed: [what you patched or would update, or "nothing"]
+- Tool: issue-scout, using my production-AI fit profile, five GitHub queries,
+  result-based ranking filters, and my rubric to scan and grade candidates.
+- What it produced: It accepted Moss #435, ranked it above cmux #16159 and
+  OpenTelemetry #7114, and labeled it ambitious because of closed PR #446.
+- Difficulties: The initial rubric missed private-code access and unresolved
+  prerequisites, its scope check was too strict for wild issues, and the Moss
+  difficulty summary misread the PR author's comment as maintainer approval.
+- What changed: I added newcomer-access and prerequisite checks, replaced
+  `one-cohesive-change` with `scope-feasible`, added difficulty notes, demoted
+  frontend-only results, and required author-association evidence for comment
+  attribution.
 
 ---
 
