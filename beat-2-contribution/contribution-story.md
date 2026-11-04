@@ -54,7 +54,7 @@ happened; these entries are the toolkit's own timeline.
 All four entries are graded. Keep every heading below, and fill each
 one in the week it belongs to.
 
-**Unit 5: I turned my issue grader into an evaluation-focused GitHub scout**
+**Unit 5: I turned my issue grader into an evaluation-focused GitHub scout (recorded 2026-11-01)**
 
 I built an issue-scout with a production-AI fit profile, five tested GitHub
 queries, result-based ranking filters, and a rubric that grades five candidates
@@ -65,7 +65,7 @@ added required newcomer-access and prerequisite checks, documented their
 evidence, and changed the ranking to demote frontend-only issues and prefer
 profile-fit titles before comment count.
 
-**Unit 6: I guarded upstream comments and cached Moss's benchmark context**
+**Unit 6: I guarded upstream comments and cached Moss's benchmark context (recorded 2026-11-01)**
 
 I consolidated my voice rules into one canonical guide and installed a
 PreToolUse guard that checks every GitHub issue or pull-request body posted
@@ -76,7 +76,7 @@ forked Moss and wrote an excluded `CLAUDE.local.md` that imports the repository'
 agent guidance and distills the benchmark files, commands, missing tests, and
 credential-dependent CI risk into 60 lines for future sessions.
 
-**Unit 7: I added a ship-gate and checks for the benchmark branch**
+**Unit 7: I added a ship-gate and checks for the benchmark branch (recorded 2026-11-03)**
 
 I installed the ship-gate beside my voice guard and wrote a manifest with
 fresh-shell commands for repository lint, benchmark compilation, and 24
@@ -108,21 +108,29 @@ problem-first opening.
 I found Moss #435 on the course Issue Selection site while looking for Python
 and production-AI evaluation work. My scout regraded it alongside cmux #16159
 and OpenTelemetry #7114; all three passed, but it ranked Moss first by fit and
-called it ambitious because an earlier 12-file implementation in PR #446
+called it ambitious because an earlier implementation in PR #446
 closed without merging. I chose it because the requested latency percentiles,
 recall measurements, reproducible dataset, and CI regression gate match the
 kind of measurable AI reliability work I want to do. I hope to learn how to
 separate hardware-sensitive performance baselines from retrieval-quality
 signals and make both trustworthy in CI.
 
-The scout was useful for separating an interesting issue from one that was
-actually available, but it was not automatically reliable. Its first wild scan
+The scout was useful for assessing fit and availability, but it was not
+automatically reliable. Its first wild scan
 needed access and prerequisite checks, its original scope check was too strict
 for real issues, and its Moss difficulty note incorrectly attributed a comment
 from the PR author to a maintainer. I replaced that scope check with
 `scope-feasible`, added non-gating difficulty notes, and required author-role
 evidence before attributing maintainer direction. I claimed the issue here:
 https://github.com/usemoss/moss/issues/435#issuecomment-6553382070.
+
+The thread also contains Sravan1011's July request to work on the issue.
+Their [PR #446](https://github.com/usemoss/moss/pull/446) closed unmerged on
+September 29, and the issue was open and unassigned when I chose it. I treated
+the closed attempt as evidence that work was inactive and named it in my
+claim. That was an availability judgment, not an explicit maintainer handoff;
+the course's warning about earlier claims is a reason to verify this directly
+before assuming a closed attempt makes an issue available again.
 
 **Toolkit**
 
@@ -193,11 +201,20 @@ GitHub settings and project credentials are also needed to activate live CI.
 
 I used a clean clone of my `ajorge2/moss` fork on macOS 26.5.1 with Python
 3.14.7. The clone's `upstream` remote points to `usemoss/moss`, and I pinned
-the reproduction to current `main` commit
+the reproduction to then-current `main` commit
 `2e638ec577199ef4abc8bcb99fe9ccf1497a8451`. This reproduction inspects whether
 the requested infrastructure exists, so it needs no installed dependencies or
 credentials. Running the live 100,000-document Moss benchmark would additionally
 require `MOSS_PROJECT_ID` and `MOSS_PROJECT_KEY`.
+
+To repeat the original source inspection independently, use a separate clone
+so the contribution branch stays intact:
+
+```bash
+git clone https://github.com/usemoss/moss.git moss-repro-435
+cd moss-repro-435
+git checkout --detach 2e638ec577199ef4abc8bcb99fe9ccf1497a8451
+```
 
 **Steps to Reproduce**
 
@@ -305,16 +322,31 @@ reports while the history location is still a proposal. I will not claim that
 
 **Implementation Plan**
 
-1. Validate the fixed corpus and share the existing query-measurement function
-   between the legacy cloud runner and a fresh local-session runner.
-2. Add complete success/failure JSON and offline tests for timing boundaries,
-   result counts, cleanup, missing credentials, and sanitized errors.
-3. Wire trusted, opt-in live measurements into CI; upload only the result JSON.
-4. Add the opt-in p95 comparison and the saved competitor-reference scorer.
-   Validate the reference's corpus, queries, model metadata, and original IDs.
+1. In `benchmarks/corpus.py`, add `load_fixed_documents()` to validate the
+   corpus. Share `benchmarks/bench_moss.py::measure_queries()` between its
+   legacy `run_async()` entry point and the new
+   `benchmarks/local_moss.py::run_local_async()` local-session runner.
+2. In `benchmarks/run_ci.py`, use `main()` and `write_record()` to produce
+   complete success/failure JSON. Cover timing boundaries, result counts,
+   cleanup, missing credentials, and sanitized errors in
+   `benchmarks/tests/test_local_moss.py` and `test_run_ci.py`.
+3. In `.github/workflows/benchmark.yml`, run offline tests on PRs and wire
+   trusted, opt-in live measurements to `benchmarks/run_ci.py`; upload only
+   the result JSON.
+4. Add `benchmarks/latency_guard.py::check_latency()` for the opt-in p95
+   comparison. Use `benchmarks/capture_competitor_rankings.py::capture()`
+   and `benchmarks/competitor_agreement.py::make_reference()`,
+   `load_reference()`, and `score_agreement()` for the saved reference.
+   Validate the corpus, queries, model metadata, and original IDs, with
+   coverage in `test_competitor_agreement.py` and `test_capture_configuration.py`.
 5. Capture a real reference, calibrate a baseline on the intended Ubuntu
    runner, and resolve durable history and the requested recall definition
    before treating this as the full issue fix.
+
+The supporting changes are `benchmarks/requirements-ci.txt` for pinned CI
+dependencies, `benchmarks/README.md` for setup and limitations, and `.gitignore`
+for generated reports. Together with seven Python modules, four test modules,
+and the workflow, these account for all 15 files in the PR diff.
 
 The plan changed during investigation. I dropped the proposed 1,000-document
 shortcut to preserve the existing workload and chose fresh local indexing
@@ -355,6 +387,32 @@ wiring exists in source. After opening PR #571, the executed GitHub Actions
 jobs completed successfully. The live Moss measurement was skipped as intended
 for a pull request; those checks do not establish live Ubuntu performance.
 
+I reran the same three source searches at PR head `a5b9f97`; all exited 0.
+The following output is excerpted from those successful searches:
+
+```text
+$ rg -n "benchmarks|run_all\.py|bench_moss" .github/workflows
+.github/workflows/benchmark.yml:31:        run: python -m unittest discover -s benchmarks/tests -v
+.github/workflows/benchmark.yml:86:          python benchmarks/run_ci.py "${benchmark_args[@]}"
+exit: 0
+
+$ rg -n -i "recall|baseline|regression|json\.(dump|dumps)|benchmark_results" benchmarks --glob '*.py'
+benchmarks/run_ci.py:48:    content = json.dumps(redact(record, secrets), indent=2, allow_nan=False) + "\n"
+benchmarks/run_ci.py:162:        "quality": {"status": "not_evaluated" if args.competitor_reference else "not_configured", "recall": None},
+benchmarks/run_ci.py:195:            result = check_latency(baseline, context, measured["latency_ms"]["p95"])
+exit: 0
+
+$ rg --files benchmarks | rg '(^|/)(test_.*|.*_test)\.py$'
+benchmarks/tests/test_competitor_agreement.py
+benchmarks/tests/test_local_moss.py
+benchmarks/tests/test_capture_configuration.py
+benchmarks/tests/test_run_ci.py
+exit: 0
+```
+
+This shows that workflow, reporting, optional guard, and test wiring now exist.
+It also shows the remaining recall field is explicitly `null`.
+
 At the first published PR head, `64494cb`, these checks passed:
 
 - `.venv/bin/python -m unittest discover -s benchmarks/tests -v`: 24 tests.
@@ -373,6 +431,26 @@ version. All executed GitHub Actions jobs passed on this head; live benchmark
 jobs were skipped. No Pinecone service call or simulated vendor run was used
 to validate these changes.
 
+The saved follow-up check output includes:
+
+```text
+$ .venv/bin/python -m unittest discover -s benchmarks/tests -v
+Ran 28 tests
+OK
+$ .venv/bin/python -m compileall -q benchmarks
+exit: 0
+$ ruff check . --extend-exclude '**/*.ipynb,sdks/javascript/sdk,sdks/python/sdk,sdks/elixir/sdk'
+All checks passed!
+```
+
+The two observable checks are explicit in `benchmarks/tests/test_run_ci.py`:
+`test_success_records_raw_metrics_without_claiming_quality_or_guards` expects
+exit 0, a success JSON record, 750 samples, and finite latency percentiles;
+`test_missing_credentials_fails_in_subprocess_without_implicit_dotenv` invokes
+the real CLI and expects exit 1 plus failure JSON naming the missing credentials,
+without loading a local environment file implicitly. The first uses controlled
+benchmark results; the second deliberately makes no live request.
+
 The tests cover complete 750-sample output, failure and incomplete results,
 credential redaction, explicit environment loading, reference validation,
 protected input paths, and the guard's boundary. A p95 of 115 ms passes a
@@ -382,7 +460,8 @@ without failing the run. These are controlled fixtures, not live performance
 or relevance evidence.
 
 I also ran the first-stage production entry point on my Mac against all
-100,000 documents. It built a fresh local index and completed 750 measured
+100,000 documents using Python 3.12.13, Moss SDK 1.22.0, and core 0.36.0. It
+built a fresh local index and completed 750 measured
 queries with exit 0: p50 13.608 ms, p95 32.357 ms, and p99 75.283 ms. The JSON
 contained the actual counts, finite samples, and workload/runtime identity.
 This validates that entry point, not a Linux threshold or the later optional
@@ -529,6 +608,16 @@ the guard and was posted through Claude Code; its body and author were then
 verified. It links the fixes to the commit and explains why I retained the
 SDK's retries and deferred the optional Actions pinning policy. No human
 approval had arrived at the last read; the PR remains awaiting review.
+
+**2026-11-03 — Checked the submission against the full rubric**
+
+I mapped the plan to the actual files and functions, pasted the matching
+after-reproduction searches and saved 28-test check output, and named the
+success and missing-credentials outcomes. I also recorded the live run's
+Python and SDK versions, dated the weekly entries from Git history, and made
+my interpretation of the earlier closed attempt explicit. These changes
+clarify the record; they do not add live calibration, a real three-engine
+reference, relevance labels, or durable history.
 
 **Toolkit**
 
