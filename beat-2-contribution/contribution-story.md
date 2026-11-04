@@ -88,10 +88,18 @@ description without weakening the rubric. The final gate passed all three
 repository checks and all four pr-precheck criteria; both hooks then passed
 and Claude Code opened upstream PR #571.
 
-**Unit 8: [one line on the tool work]**
+**Unit 8: I tested the PR-monitor and checked its review draft against evidence**
 
-[2-4 sentences: the PR-monitor and your playbook. What it read, what it
-drafted, what you did with the draft.]
+I installed the PR-monitor and wrote a playbook that waits 14 days of human
+silence before considering one nudge, which still needs my approval. Its
+November 3 run at 22:07 found `FEEDBACK-IN`, 19 passing checks, one skipped
+check, and no human review, then drafted a batched reply to cubic and
+CodeRabbit. The draft claimed inspection without supporting evidence and promised
+extra cleanup retries before checking the SDK's existing retry policy. I
+tightened the response rule to require evidence, independently validated the
+findings, then reviewed and published `a5b9f97` with 28 passing tests and a
+revised reply through Claude Code after the voice guard required a concrete
+problem-first opening.
 
 ---
 
@@ -282,6 +290,13 @@ optional p95 guard against a reviewed baseline and a separate report-only
 quality signal: Moss's coverage of sentence templates returned by at least two
 of Pinecone, Qdrant, and Chroma on the same text queries.
 
+Relevance recall needs a vetted answer key identifying the relevant results
+for each query. I did not trust unreviewed AI-generated labels or a previous
+engine's outputs as that key, so I chose a reproducible competitor comparison
+instead. Reviewed AI-assisted judgments could still contribute to a future
+key, but competitor consensus measures agreement rather than establishing
+relevance.
+
 This is a staged contribution. It does not yet provide a calibrated Ubuntu
 baseline, a real three-engine reference, independent relevance recall, or
 durable published history. Temporary workflow artifacts preserve individual
@@ -340,7 +355,7 @@ wiring exists in source. After opening PR #571, the executed GitHub Actions
 jobs completed successfully. The live Moss measurement was skipped as intended
 for a pull request; those checks do not establish live Ubuntu performance.
 
-On the current branch, these checks pass:
+At the first published PR head, `64494cb`, these checks passed:
 
 - `.venv/bin/python -m unittest discover -s benchmarks/tests -v`: 24 tests.
 - `.venv/bin/python -m compileall -q benchmarks`: exit 0.
@@ -348,6 +363,15 @@ On the current branch, these checks pass:
   pass, using Ruff 0.15.22.
 - `actionlint .github/workflows/benchmark.yml`: exit 0 with actionlint 1.7.12.
 - `git diff --check upstream/main...HEAD`: exit 0.
+
+After the automated review, the follow-up passed 28 offline tests,
+compilation, and repository lint, then was published as `a5b9f97`. New checks
+cover the documented Pinecone
+metric defaults, boolean-versus-number latency compatibility, and the actual
+checked-in corpus's count and checksum. The PR now contains that 28-test
+version. All executed GitHub Actions jobs passed on this head; live benchmark
+jobs were skipped. No Pinecone service call or simulated vendor run was used
+to validate these changes.
 
 The tests cover complete 750-sample output, failure and incomplete results,
 credential redaction, explicit environment loading, reference validation,
@@ -458,19 +482,70 @@ hooks passing. It targets `usemoss/moss:main` from my fork's
 `fix/435-benchmark-ci` branch. Executed GitHub Actions jobs passed; the live
 Moss measurement was skipped on the PR. Human maintainer feedback is pending.
 
+**2026-11-03 — Ran the PR-monitor and validated automated feedback**
+
+At 22:07 America/New_York, the monitor read PR #571 and reported `FEEDBACK-IN`:
+19 checks passing, one skipped, no human review decision, and mergeability
+`MERGEABLE` with merge state `BLOCKED`. It drafted one reply covering cubic
+and CodeRabbit's automated findings. I did not post it. The playbook waits 14
+calendar days after my latest review-ready update or substantive human exchange
+before considering one approval-required nudge; this PR was under a day old.
+
+The draft said it had checked every finding but admitted that it had not read
+the runner or run tests, and it proposed cleanup retries without establishing
+what the installed SDK already does. I strengthened the response rule: a draft
+must not claim inspection, tests, a push, or a re-review request without
+evidence from the run. I wrote a separate evidence-backed reply and kept it
+local for review.
+
+I validated the technical findings and prepared a local follow-up:
+
+| Feedback | Decision and evidence |
+|---|---|
+| Pinecone's omitted metric for documented model defaults | Accept the two known cosine defaults; keep rejecting unknown defaults and explicit noncosine metrics. Covered by an offline configuration test. |
+| Python treats `True` as equal to `1` | Reject booleans against JSON numbers in baseline compatibility, while allowing equivalent numbers such as `1` and `1.0`. Covered by regression cases. |
+| Corpus test only checked a fixture | Add a test that reads the actual checked-in corpus and verifies its pinned count and checksum. |
+| Three README inaccuracies | Correct `quality.recall` to `null`, use the runnable repository-root command, and distinguish argument errors from runtime failures that can write a report. |
+| Add namespace-delete retries | Keep the existing SDK policy: Pinecone 10.x already has bounded DELETE retries. Live cleanup has not been exercised. |
+| Pin Actions to commit SHAs | Defer this optional policy change for maintainer direction; the current file follows the repository's version-tag convention. |
+
+Before publishing this follow-up, all 28 offline tests, compilation, and
+repository lint passed locally while the PR was still at `64494cb` with 24
+tests. The follow-up code and revised reply were then held for my review.
+The full Pinecone reference, Ubuntu baseline, live measurement, recall
+definition, and durable history remained unfinished.
+
+**2026-11-03 — Published the reviewed follow-up and reply**
+
+After reviewing the changes and revised reply, I approved publication and
+pushed commit `a5b9f97` to the PR. Its 28 offline tests, compilation, and
+repository lint passed;
+all executed GitHub Actions jobs also passed, with live benchmark jobs skipped.
+The voice guard stopped the reply's abstract opening, so I revised it to lead
+with the actual problem: the collector rejected valid Pinecone indexes when
+the model supplied its default metric. The revised
+[reply](https://github.com/usemoss/moss/pull/571#issuecomment-6621634588) passed
+the guard and was posted through Claude Code; its body and author were then
+verified. It links the fixes to the commit and explains why I retained the
+SDK's retries and deferred the optional Actions pinning policy. No human
+approval had arrived at the last read; the PR remains awaiting review.
+
 **Toolkit**
 
 - Tool: Codex for implementation and research, Claude Code for plan-check,
-  and private contribution/context scratchpads for decisions and evidence.
+  the PR-monitor and my playbook for review triage, and private scratchpads
+  for decisions and evidence.
 - What it produced: A reviewed implementation branch, dated decisions, saved
   test transcripts, and an upstream PR without publishing the private notes.
 - Difficulties: It was easy to confuse a proposed design with a verified
   resource, or a successful Mac run with an Ubuntu baseline. The initial
   shared-embedding collector also did more setup than the comparison needed.
+  The monitor's draft overstated its inspection and proposed unverified work.
 - What changed: I recorded limitations as they arose, moved to same-text
   engine-managed search with model provenance, and required review before
   each external push or post. I kept generated indexes, credentials, caches,
-  and scratch documents out of the contribution.
+  and scratch documents out of the contribution. I strengthened the monitor's
+  response rule and validated findings before preparing a reply or follow-up.
 
 ---
 
@@ -488,27 +563,44 @@ or explicitly resolving the unfinished scope.
 
 **Maintainer Feedback:**
 
-- 2026-11-03: No human maintainer feedback yet. CodeRabbit and cubic's automated
-  reviews are in progress; their activity is separate from maintainer approval.
+- 2026-11-03, 22:07 America/New_York: No human maintainer feedback or review
+  decision yet. The monitor found substantive automated feedback from cubic
+  and CodeRabbit, with 19 passing checks and one skipped. I validated the
+  findings and prepared local fixes and a revised reply, which were held for
+  review at this checkpoint. The decisions are recorded in Implementation Notes.
+- 2026-11-03, follow-up: Published the approved fixes in `a5b9f97` and posted
+  the [guarded review reply](https://github.com/usemoss/moss/pull/571#issuecomment-6621634588).
+  The PR has 28 passing offline tests and successful executed GitHub Actions
+  jobs; live benchmarks were skipped. Human review is still pending at the
+  last read.
 
 **Status:** Awaiting review.
 
 **Toolkit**
 
 - Tool: Moss's PR template, the saved test evidence, and the installed
-  ship-gate/voice-guard hooks, with Claude Code opening the reviewed PR.
+  ship-gate/voice-guard hooks, with Claude Code opening the reviewed PR and
+  the PR-monitor reading its subsequent feedback.
 - What it produced: The final branch gate passed repository lint,
   compilation, 24 tests, and all four pr-precheck criteria. Both creation hooks
-  passed, and PR #571 opened against the original repository.
+  passed, and PR #571 opened against the original repository. The monitor
+  produced a saved state report and a local response draft; the reviewed
+  follow-up and revised reply are now published.
 - Difficulties: The recheck rejected plan-fidelity because the trimmed tests
   omitted cleanup on failure and the CLI's early rejection of foreign IDs.
   After those fixes, the opening hook caught the undocumented environment-loading
-  change and could not find an issue URL from `Refs #435` alone.
+  change and could not find an issue URL from `Refs #435` alone. The monitor's
+  response draft later claimed inspection without supporting evidence. The
+  reply's first opening also failed the concrete-problem-first voice rule.
 - What changed: I added the two focused failure tests, narrowed the question
   to the interim quality signal, and named the optional p95 guard in the title.
   I documented the environment change and added the full issue URL to the plan
   and description, then reran the gate and exact opening command successfully.
-  I did not weaken the rubric or change the issue-lookup helper.
+  I did not weaken the rubric or change the issue-lookup helper. For the review
+  round, I tightened the playbook's evidence rule, validated each finding,
+  and held the revised reply and follow-up for my review. After approval,
+  I published the 28-test fix and revised the opening to describe the actual
+  Pinecone failure before posting through the guard.
 
 ---
 
@@ -521,6 +613,8 @@ query latency. I also learned why reproducibility needs workload and runtime
 identity, why failure JSON and nonzero exits matter in CI, and why secrets
 must stay out of untrusted pull-request jobs. Agreement between engines can
 reveal differences, but does not establish that their shared result is relevant.
+I also learned to check SDK behavior before adding another retry layer and
+to distinguish JSON booleans from numbers when comparing configurations.
 
 **Challenges Overcome**
 
@@ -529,7 +623,10 @@ Tracing the synthetic corpus, installed SDK, old shared-index proposal, and
 local-session option prevented me from publishing numbers with misleading
 claims. I also fixed a real partial-secret redaction case and made missing
 credentials fail visibly. Simplifying the tests after review helped keep the
-patch understandable while preserving the failure cases that matter.
+patch understandable while preserving the failure cases that matter. The
+monitor then gave me a useful list of review findings but an unreliable reply
+draft; validating the findings and tightening the playbook made its output
+reviewable without treating automated feedback as maintainer direction.
 
 **What I'd Do Differently Next Time**
 
