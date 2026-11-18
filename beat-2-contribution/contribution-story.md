@@ -470,10 +470,12 @@ passed locally, and the course ship-gate passed all three manifest commands
 and four pr-precheck criteria at `bfd8dfb`. At the November 18 status check,
 all executed GitHub Actions jobs passed; the live measurement job was skipped.
 
-The README-only follow-up
+The README-only follow-ups
 [`c74f359`](https://github.com/usemoss/moss/pull/571/commits/c74f359828141049d9ded6f0a9e98f378c56c998)
-passed ship-gate, all required CI checks, and the
-[benchmark workflow](https://github.com/usemoss/moss/actions/runs/44400574565).
+and [`7d3d7ed`](https://github.com/usemoss/moss/pull/571/commits/7d3d7ede3136e9033d17135acbf9d461a9db580a)
+passed ship-gate and required CI checks. The
+[latest benchmark workflow](https://github.com/usemoss/moss/actions/runs/44403184980)
+also passed.
 
 The two observable checks are explicit in `benchmarks/tests/test_run_ci.py`:
 `test_success_records_raw_metrics_without_claiming_quality_or_guards` expects
@@ -682,6 +684,18 @@ nonzero and names the namespace for manual removal. The addressed review
 thread is resolved. Required CI checks pass and the PR has no merge conflicts;
 GitHub reports `REVIEW_REQUIRED`, awaiting approval from an eligible reviewer.
 
+**2026-11-18 — Clarified forced termination**
+
+A subsequent [automated review](https://github.com/usemoss/moss/pull/571#discussion_r4621076040)
+identified a separate cleanup limit: `SIGKILL` can prevent the `finally`
+block from running, leaving no ordinary cleanup-failure message.
+I clarified the recovery steps in README-only commit
+[`7d3d7ed`](https://github.com/usemoss/moss/pull/571/commits/7d3d7ede3136e9033d17135acbf9d461a9db580a):
+retain the printed temporary namespace, then check the index and remove
+leftovers after a forced termination. The SDK's existing retry policy
+remains in place. The update passed ship-gate and CI, and the new review
+thread is resolved.
+
 **Toolkit**
 
 - Tool: Codex for implementation and research, Claude Code for plan-check,
@@ -734,11 +748,15 @@ or explicitly resolving the unfinished scope.
   reported no issues. No human review decision had arrived at this check;
   automated feedback does not establish maintainer approval.
 - 2026-11-18, cleanup follow-up: Clarified the documented cleanup failure
-  behavior in `c74f359` and resolved the addressed cleanup thread. All six
-  review threads are resolved, required CI checks pass, and there are no
-  merge conflicts. GitHub reports `REVIEW_REQUIRED`; one approving review
-  remains required under the repository's
+  behavior in `c74f359` and resolved the addressed cleanup thread. At that
+  checkpoint, all six review threads were resolved, required CI checks passed,
+  and there were no merge conflicts. GitHub reported `REVIEW_REQUIRED`; one
+  approving review remained required under the repository's
   [main-branch rules](https://github.com/usemoss/moss/rules/11315073).
+- 2026-11-18, forced-termination follow-up: Addressed the new README finding
+  in `7d3d7ed`. All seven review threads are resolved, required CI checks and
+  the benchmark workflow pass, and there are no merge conflicts. GitHub
+  reports `REVIEW_REQUIRED`; the PR still needs an eligible approving review.
 
 **Status:** Awaiting review.
 
@@ -788,6 +806,8 @@ The later CodeRabbit suggestion showed me that testing a validation rule
 directly does not prove its caller uses it. Deliberately removing that call
 in an isolated copy gave me concrete evidence that the new test protects
 the connection.
+I also learned to document recovery when forced termination prevents cleanup
+code from running.
 
 **Challenges Overcome**
 
