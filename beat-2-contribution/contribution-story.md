@@ -651,30 +651,20 @@ reference, relevance labels, or durable history.
 
 **2026-11-18 — Protected the collector's metric-validation call**
 
-CodeRabbit's [latest test suggestion](https://github.com/usemoss/moss/pull/571#pullrequestreview-5762764209),
-posted November 3 at 22:22 America/New_York, identified a coverage gap:
-the helper tests would still pass if `pinecone_text_field()` stopped calling
-the validator. The production function already made that call correctly.
-I added `test_pinecone_text_field_rejects_non_cosine_metric` using real SDK
-index and field model objects with an explicit `dotproduct` metric. It
-checks the specific cosine error, so an unrelated configuration rejection
-cannot satisfy the test.
+CodeRabbit's [November 3 review](https://github.com/usemoss/moss/pull/571#pullrequestreview-5762764209)
+identified that my helper tests would still pass if `pinecone_text_field()`
+stopped calling the validator. I added
+`test_pinecone_text_field_rejects_non_cosine_metric` using real SDK model
+objects. It expects the cosine-specific error for `dotproduct` and fails
+when the validation call is removed in an isolated source copy.
 
-I pinned Pinecone 10.3.0 in the workflow's test job and documented the same
-local test setup in the README. The live measurement dependencies stayed
-unchanged. An isolated source copy with only the validator call removed
-made the new test fail. All 29 offline tests, lint, compilation, actionlint,
-and whitespace checks passed locally; ship-gate accepted all four rubric
-criteria after running the three manifest commands.
-
-I approved and pushed
+I pinned Pinecone 10.3.0 in the test job and documented the setup in the
+README, keeping it out of the live measurement dependencies. Commit
 [`bfd8dfb`](https://github.com/usemoss/moss/pull/571/commits/bfd8dfb0834e09fa4f4cce294f532f4040966876)
-to the existing PR and verified its head and successful
-[Ubuntu benchmark CI](https://github.com/usemoss/moss/actions/runs/44397984201).
-I chose not to add a separate follow-up comment because the small test update
-and passing checks already showed the result without needing a maintainer
-decision. No service simulation or live request was involved. The reference,
-baseline calibration, relevance recall, and durable history remain open.
+passed all 29 tests locally and in
+[Ubuntu CI](https://github.com/usemoss/moss/actions/runs/44397984201), plus
+the lint, compilation, workflow, and ship-gate checks. This adds coverage
+without changing the collector's production behavior.
 
 **Toolkit**
 
@@ -726,8 +716,7 @@ or explicitly resolving the unfinished scope.
   Actions jobs passed, with live measurement skipped. A later
   [automated Devin review](https://github.com/usemoss/moss/pull/571#pullrequestreview-5965197551)
   reported no issues. No human review decision had arrived at this check;
-  automated feedback does not establish maintainer approval. I did not post
-  another follow-up comment for this small test change.
+  automated feedback does not establish maintainer approval.
 
 **Status:** Awaiting review.
 
@@ -758,8 +747,7 @@ or explicitly resolving the unfinished scope.
   I published the 28-test fix and revised the opening to describe the actual
   Pinecone failure before posting through the guard.
   On November 18 I added the collector-path test, verified that it catches a
-  removed validation call, and published the gated update without an extra
-  status comment.
+  removed validation call, and published the gated update.
 
 ---
 
