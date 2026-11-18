@@ -118,7 +118,10 @@ rankings on the same text. The report measures Moss's coverage of sentence
 templates supported by at least two competitors, counting duplicate variants
 once. This is report-only agreement, not proof of relevance. A real local
 Chroma/Qdrant smoke test succeeded on 261 documents. The complete three-engine
-capture with Pinecone remains unfinished.
+capture remains unfinished because I had not configured the required Pinecone
+API credentials and a compatible cloud index with integrated embedding.
+Qdrant and Chroma ran locally; the Pinecone path required that additional
+setup.
 
 ### Changing the tests after review
 
@@ -152,7 +155,9 @@ OK
 
 This gave me a concrete result after the revision: the new test detected the
 missing-call regression, and the published suite passed in CI. Constructing
-SDK configuration objects required no live Pinecone request.
+SDK configuration objects required no live Pinecone request. This test covered
+the existing validation logic; it did not fix a failure observed during a
+live Pinecone capture. The missing Pinecone setup was a separate prerequisite.
 
 ## Limitations and what's next
 
