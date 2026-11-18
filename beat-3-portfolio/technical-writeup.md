@@ -38,17 +38,36 @@ tracing the existing workload, I kept all 100,000 documents and the same 15
 queries. Reducing the corpus would have changed the workload I was supposed
 to make repeatable. The corpus also contained generated variants of 20 base
 sentences about AI and computer science, which mattered later when deciding
-what search quality meant. Two actual entries in
+what search quality meant. Eight actual entries in
 `benchmarks/bench_100k_docs.json` are:
 
 ```text
 doc_0: Computer vision systems extract meaningful information from digital images and videos (variant 0, context 3278)
 doc_5: Anomaly detection systems identify unusual patterns that deviate from expected behavior (variant 5, context 55302)
+doc_6: Neural networks consist of interconnected layers of artificial neurons that process information (variant 6, context 3905)
+doc_7: Natural language processing enables computers to understand and generate human language (variant 7, context 28657)
+doc_2: Cryptographic protocols ensure secure data transmission across untrusted networks (variant 2, context 18289)
+doc_4: Dimensionality reduction techniques compress high-dimensional data while preserving structure (variant 4, context 11395)
+doc_9: Knowledge graphs represent structured relationships between real-world entities and concepts (variant 9, context 3478)
+doc_18: Database indexing strategies improve query performance for high-throughput applications (variant 18, context 44118)
 ```
 
-The fixed queries in `benchmarks/corpus.py` include
-`computer vision image processing` and `anomaly detection patterns`. Each
-query asks Moss to return its five closest matches from the full corpus.
+Eight of the 15 fixed queries in `benchmarks/corpus.py` are:
+
+```text
+computer vision image processing
+anomaly detection patterns
+neural network training data
+natural language processing
+cryptographic data encryption
+dimensionality reduction compression
+knowledge graph entities
+database indexing performance
+```
+
+Each query asks Moss to return its five closest matches from the full
+100,000-entry corpus. These examples show the search inputs, not labeled
+correct answers or a recorded result list.
 
 ### Running the full workload and saving evidence
 
