@@ -101,10 +101,13 @@ Mac run was not enough to choose an acceptance threshold for Ubuntu CI.
 
 I implemented an optional guard that fails a run when its 95th-percentile
 latency exceeds a compatible baseline by more than a configured allowance,
-while retaining the measurements. It still needs repeated CI runs to
-calibrate that baseline and allowance before activation. Even when enabled,
-it flags slowdowns after changes reach `main`; it does not block a push or
-prevent a PR from merging. Competitor agreement also remains report-only.
+while retaining the measurements. I deliberately left it optional and
+user-configurable: whoever runs the benchmark chooses whether to enable it,
+which compatible baseline to use, and the maximum percentage slowdown allowed.
+It still needs repeated CI runs to calibrate that baseline and allowance
+before activation. Even when enabled, it flags slowdowns after changes reach
+`main`; it does not block a push or prevent a PR from merging. Competitor
+agreement also remains report-only.
 
 ### Defining an honest quality signal
 
