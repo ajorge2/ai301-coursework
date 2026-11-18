@@ -470,6 +470,11 @@ passed locally, and the course ship-gate passed all three manifest commands
 and four pr-precheck criteria at `bfd8dfb`. At the November 18 status check,
 all executed GitHub Actions jobs passed; the live measurement job was skipped.
 
+The README-only follow-up
+[`c74f359`](https://github.com/usemoss/moss/pull/571/commits/c74f359828141049d9ded6f0a9e98f378c56c998)
+passed ship-gate, all required CI checks, and the
+[benchmark workflow](https://github.com/usemoss/moss/actions/runs/44400574565).
+
 The two observable checks are explicit in `benchmarks/tests/test_run_ci.py`:
 `test_success_records_raw_metrics_without_claiming_quality_or_guards` expects
 exit 0, a success JSON record, 750 samples, and finite latency percentiles;
@@ -666,6 +671,17 @@ passed all 29 tests locally and in
 the lint, compilation, workflow, and ship-gate checks. This adds coverage
 without changing the collector's production behavior.
 
+**2026-11-18 — Documented cleanup failures**
+
+I verified that Pinecone's SDK already provides bounded DELETE retries, so
+the cleanup finding did not need another retry loop. The README still
+promised cleanup on exit. I corrected it in
+[`c74f359`](https://github.com/usemoss/moss/pull/571/commits/c74f359828141049d9ded6f0a9e98f378c56c998)
+to explain that deletion is attempted and an exhausted cleanup failure exits
+nonzero and names the namespace for manual removal. The addressed review
+thread is resolved. Required CI checks pass and the PR has no merge conflicts;
+GitHub reports `REVIEW_REQUIRED`, awaiting approval from an eligible reviewer.
+
 **Toolkit**
 
 - Tool: Codex for implementation and research, Claude Code for plan-check,
@@ -717,6 +733,12 @@ or explicitly resolving the unfinished scope.
   [automated Devin review](https://github.com/usemoss/moss/pull/571#pullrequestreview-5965197551)
   reported no issues. No human review decision had arrived at this check;
   automated feedback does not establish maintainer approval.
+- 2026-11-18, cleanup follow-up: Clarified the documented cleanup failure
+  behavior in `c74f359` and resolved the addressed cleanup thread. All six
+  review threads are resolved, required CI checks pass, and there are no
+  merge conflicts. GitHub reports `REVIEW_REQUIRED`; one approving review
+  remains required under the repository's
+  [main-branch rules](https://github.com/usemoss/moss/rules/11315073).
 
 **Status:** Awaiting review.
 
