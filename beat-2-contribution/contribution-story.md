@@ -339,6 +339,9 @@ reports while the history location is still a proposal. I will not claim that
    `load_reference()`, and `score_agreement()` for the saved reference.
    Validate the corpus, queries, model metadata, and original IDs, with
    coverage in `test_competitor_agreement.py` and `test_capture_configuration.py`.
+   The latter also exercises `capture_competitor_rankings.pinecone_text_field()`
+   with real Pinecone SDK model types; only the workflow's test job installs
+   that SDK dependency.
 5. Capture a real reference, calibrate a baseline on the intended Ubuntu
    runner, and resolve durable history and the requested recall definition
    before treating this as the full issue fix.
@@ -426,8 +429,8 @@ After the automated review, the follow-up passed 28 offline tests,
 compilation, and repository lint, then was published as `a5b9f97`. New checks
 cover the documented Pinecone
 metric defaults, boolean-versus-number latency compatibility, and the actual
-checked-in corpus's count and checksum. The PR now contains that 28-test
-version. All executed GitHub Actions jobs passed on this head; live benchmark
+checked-in corpus's count and checksum. That checkpoint contained 28 tests.
+All executed GitHub Actions jobs passed on that head; live benchmark
 jobs were skipped. No Pinecone service call or simulated vendor run was used
 to validate these changes.
 
@@ -442,6 +445,30 @@ exit: 0
 $ ruff check . --extend-exclude '**/*.ipynb,sdks/javascript/sdk,sdks/python/sdk,sdks/elixir/sdk'
 All checks passed!
 ```
+
+On November 18, I added a caller-path test in
+`benchmarks/tests/test_capture_configuration.py` and published
+[`bfd8dfb`](https://github.com/usemoss/moss/pull/571/commits/bfd8dfb0834e09fa4f4cce294f532f4040966876).
+It passes a ready index configuration built from Pinecone 10.3.0's real SDK
+types through `pinecone_text_field()` and expects the cosine-specific error
+for `dotproduct`. Removing the validator call in an isolated source copy
+makes this test fail with `CaptureError not raised`; production source was
+unchanged by that experiment. No Pinecone client or service request is used.
+
+All 29 tests passed locally and in the
+[Ubuntu benchmark CI run](https://github.com/usemoss/moss/actions/runs/44397984201),
+whose log includes:
+
+```text
+test_pinecone_text_field_rejects_non_cosine_metric (test_capture_configuration.CaptureConfigurationTests.test_pinecone_text_field_rejects_non_cosine_metric) ... ok
+Ran 29 tests in 0.577s
+OK
+```
+
+Repository lint, compilation, workflow validation, and whitespace checks
+passed locally, and the course ship-gate passed all three manifest commands
+and four pr-precheck criteria at `bfd8dfb`. At the November 18 status check,
+all executed GitHub Actions jobs passed; the live measurement job was skipped.
 
 The two observable checks are explicit in `benchmarks/tests/test_run_ci.py`:
 `test_success_records_raw_metrics_without_claiming_quality_or_guards` expects
@@ -481,11 +508,14 @@ remain open.
   executed GitHub Actions jobs on the PR.
 - Difficulties: A fake SDK can prove harness behavior but cannot prove search
   quality or live speed. The early test suite also checked too many internal
-  details and felt heavy for the change.
+  details and felt heavy for the change. Later review showed that testing the
+  metric helper directly did not protect the collector's call to that helper.
 - What changed: I reduced repetitive fixtures and assertions while preserving
   observable contracts, and kept fixture, Mac, sample-collector, and actual CI
   evidence distinct. Independent review also caught overlapping-secret
   redaction; longest-first replacement and a regression case fixed it.
+  I added the real-SDK configuration test and verified that removing the
+  validation call makes it fail, then confirmed all 29 tests in Ubuntu CI.
 
 ---
 
@@ -619,6 +649,33 @@ my interpretation of the earlier closed attempt explicit. These changes
 clarify the record; they do not add live calibration, a real three-engine
 reference, relevance labels, or durable history.
 
+**2026-11-18 — Protected the collector's metric-validation call**
+
+CodeRabbit's [latest test suggestion](https://github.com/usemoss/moss/pull/571#pullrequestreview-5762764209),
+posted November 3 at 22:22 America/New_York, identified a coverage gap:
+the helper tests would still pass if `pinecone_text_field()` stopped calling
+the validator. The production function already made that call correctly.
+I added `test_pinecone_text_field_rejects_non_cosine_metric` using real SDK
+index and field model objects with an explicit `dotproduct` metric. It
+checks the specific cosine error, so an unrelated configuration rejection
+cannot satisfy the test.
+
+I pinned Pinecone 10.3.0 in the workflow's test job and documented the same
+local test setup in the README. The live measurement dependencies stayed
+unchanged. An isolated source copy with only the validator call removed
+made the new test fail. All 29 offline tests, lint, compilation, actionlint,
+and whitespace checks passed locally; ship-gate accepted all four rubric
+criteria after running the three manifest commands.
+
+I approved and pushed
+[`bfd8dfb`](https://github.com/usemoss/moss/pull/571/commits/bfd8dfb0834e09fa4f4cce294f532f4040966876)
+to the existing PR and verified its head and successful
+[Ubuntu benchmark CI](https://github.com/usemoss/moss/actions/runs/44397984201).
+I chose not to add a separate follow-up comment because the small test update
+and passing checks already showed the result without needing a maintainer
+decision. No service simulation or live request was involved. The reference,
+baseline calibration, relevance recall, and durable history remain open.
+
 **Toolkit**
 
 - Tool: Codex for implementation and research, Claude Code for plan-check,
@@ -626,6 +683,8 @@ reference, relevance labels, or durable history.
   for decisions and evidence.
 - What it produced: A reviewed implementation branch, dated decisions, saved
   test transcripts, and an upstream PR without publishing the private notes.
+  The November 18 follow-up added a regression test backed by a deliberately
+  broken source copy and a successful 29-test CI run.
 - Difficulties: It was easy to confuse a proposed design with a verified
   resource, or a successful Mac run with an Ubuntu baseline. The initial
   shared-embedding collector also did more setup than the comparison needed.
@@ -659,9 +718,16 @@ or explicitly resolving the unfinished scope.
   review at this checkpoint. The decisions are recorded in Implementation Notes.
 - 2026-11-03, follow-up: Published the approved fixes in `a5b9f97` and posted
   the [guarded review reply](https://github.com/usemoss/moss/pull/571#issuecomment-6621634588).
-  The PR has 28 passing offline tests and successful executed GitHub Actions
-  jobs; live benchmarks were skipped. Human review is still pending at the
-  last read.
+  That checkpoint had 28 passing offline tests and successful executed GitHub
+  Actions jobs; live benchmarks were skipped. Human review was pending.
+- 2026-11-18: Addressed CodeRabbit's caller-path test suggestion in
+  [`bfd8dfb`](https://github.com/usemoss/moss/pull/571/commits/bfd8dfb0834e09fa4f4cce294f532f4040966876).
+  All 29 tests passed locally and in Ubuntu benchmark CI; all executed GitHub
+  Actions jobs passed, with live measurement skipped. A later
+  [automated Devin review](https://github.com/usemoss/moss/pull/571#pullrequestreview-5965197551)
+  reported no issues. No human review decision had arrived at this check;
+  automated feedback does not establish maintainer approval. I did not post
+  another follow-up comment for this small test change.
 
 **Status:** Awaiting review.
 
@@ -670,11 +736,12 @@ or explicitly resolving the unfinished scope.
 - Tool: Moss's PR template, the saved test evidence, and the installed
   ship-gate/voice-guard hooks, with Claude Code opening the reviewed PR and
   the PR-monitor reading its subsequent feedback.
-- What it produced: The final branch gate passed repository lint,
+- What it produced: At PR opening, the branch gate passed repository lint,
   compilation, 24 tests, and all four pr-precheck criteria. Both creation hooks
   passed, and PR #571 opened against the original repository. The monitor
   produced a saved state report and a local response draft; the reviewed
-  follow-up and revised reply are now published.
+  follow-up and revised reply were published. The November 18 test follow-up
+  passed a fresh ship-gate with 29 tests and is published on the same PR.
 - Difficulties: The recheck rejected plan-fidelity because the trimmed tests
   omitted cleanup on failure and the CLI's early rejection of foreign IDs.
   After those fixes, the opening hook caught the undocumented environment-loading
@@ -690,6 +757,9 @@ or explicitly resolving the unfinished scope.
   and held the revised reply and follow-up for my review. After approval,
   I published the 28-test fix and revised the opening to describe the actual
   Pinecone failure before posting through the guard.
+  On November 18 I added the collector-path test, verified that it catches a
+  removed validation call, and published the gated update without an extra
+  status comment.
 
 ---
 
@@ -704,6 +774,10 @@ must stay out of untrusted pull-request jobs. Agreement between engines can
 reveal differences, but does not establish that their shared result is relevant.
 I also learned to check SDK behavior before adding another retry layer and
 to distinguish JSON booleans from numbers when comparing configurations.
+The later CodeRabbit suggestion showed me that testing a validation rule
+directly does not prove its caller uses it. Deliberately removing that call
+in an isolated copy gave me concrete evidence that the new test protects
+the connection.
 
 **Challenges Overcome**
 
