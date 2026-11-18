@@ -37,7 +37,18 @@ I initially considered using 1,000 documents to make setup easier. After
 tracing the existing workload, I kept all 100,000 documents and the same 15
 queries. Reducing the corpus would have changed the workload I was supposed
 to make repeatable. The corpus also contained generated variants of 20 base
-sentences, which mattered later when deciding what search quality meant.
+sentences about AI and computer science, which mattered later when deciding
+what search quality meant. Two actual entries in
+`benchmarks/bench_100k_docs.json` are:
+
+```text
+doc_0: Computer vision systems extract meaningful information from digital images and videos (variant 0, context 3278)
+doc_5: Anomaly detection systems identify unusual patterns that deviate from expected behavior (variant 5, context 55302)
+```
+
+The fixed queries in `benchmarks/corpus.py` include
+`computer vision image processing` and `anomaly detection patterns`. Each
+query asks Moss to return its five closest matches from the full corpus.
 
 ### Running the full workload and saving evidence
 
@@ -65,10 +76,16 @@ credentials stay out of Git.
 
 I added offline tests for pull requests and made live measurements opt-in
 for trusted main-branch runs. Pull requests do not receive Moss credentials.
-An optional guard compares the 95th-percentile latency against a reviewed,
-compatible baseline and exits nonzero for a slowdown while retaining the
-measurements. I left baseline calibration and activation unfinished rather
-than choose a threshold from a single run on my machine.
+I left automatic regression failure disabled: enforcing a strict cutoff
+before measuring normal CI variation could reject acceptable changes. One
+Mac run was not enough to choose an acceptance threshold for Ubuntu CI.
+
+I implemented an optional guard that fails a run when its 95th-percentile
+latency exceeds a compatible baseline by more than a configured allowance,
+while retaining the measurements. It still needs repeated CI runs to
+calibrate that baseline and allowance before activation. Even when enabled,
+it flags slowdowns after changes reach `main`; it does not block a push or
+prevent a PR from merging. Competitor agreement also remains report-only.
 
 ### Defining an honest quality signal
 
